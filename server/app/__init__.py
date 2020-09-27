@@ -50,8 +50,8 @@ def handle_join():
 @socketio.on('msg')
 def handle_msg(json):
     app.logger.info(f'msg timestamp={json["timestamp"]}, seq={json["sequence"]}')
-    emit('msg received', json)
+    emit('msg received', json, broadcast=True)
 
 
 if __name__ == '__main__':
-    socketio.run(app)
+    socketio.run(app, host='0.0.0.0')

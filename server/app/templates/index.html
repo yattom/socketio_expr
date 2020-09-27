@@ -4,10 +4,13 @@
         integrity="sha512-v8ng/uGxkge3d1IJuEo6dJP8JViyvms0cly9pnbfRxT6/31c3dRWxIiwGnMSWwZjHKOuY3EVmijs7k1jz/9bLA=="
         crossorigin="anonymous"></script>
 <script>
+    const myuid = Math.floor(Math.random() * 1000000000);
     const socket = io('/', { transports: ['websocket'], upgrade: false });
     let intervalMs = 1000;
     let data = { data: 123456789 };
     let seq = 1;
+    const sentAt = {};
+    const roundtrips = [];
 
     socket.on('connect', () => {
         console.log('connected');
@@ -20,19 +23,43 @@
         setTimeout(sendMsg, intervalMs);
     })
 
-    socket.on('msg received', () => {
-        console.log('msg received');
+    socket.on('msg received', (msg) => {
+        const timestamp = msg.timestamp;
+        if(sentAt[msg.sequence]) {
+            const rt = (Date.now() - msg.timestamp);
+            console.log('msg received; roundtrip=' + rt);
+            while(roundtrips.length > 10) {
+                roundtrips.shift();
+            }
+            roundtrips.push(rt);
+    
+            let s = 0;
+            for(const r of roundtrips) {
+                s += r;
+            }
+            const avg = s / roundtrips.length;
+            document.getElementById('roundtrip').innerText = avg;
+            delete sentAt[msg.sequence];
+            document.getElementById('pending').innerText = Object.keys(sentAt).length;
+        } else {
+            console.log('msg received');
+        }
+
     })
 
     function sendMsg() {
-        console.log('sending msg...');
+        // console.log('sending msg...');
+        const now = Date.now();
+        const msgId = myuid + '-' + seq;
         socket.emit('msg', {
-            timestamp: new Date().toLocaleString(),
-            sequence: seq,
+            timestamp: now,
+            sequence: msgId,
             data: data
         });
+        sentAt[msgId] = now;
         seq += 1;
-        console.log('finished sending msg...');
+        document.getElementById('pending').innerText = Object.keys(sentAt).length;
+        // console.log('finished sending msg...');
 
         setTimeout(sendMsg, intervalMs);
     }
@@ -52,6 +79,14 @@
 <body>
 <h1>index</h1>
 <div>
+  <div>
+    average roundtrip (past 10 iteration):
+    <span id="roundtrip"></span>
+  </div>
+  <div>
+    pending count (number of msgs whose response is not received):
+    <span id="pending"></span>
+  </div>
   <div>
     current interval:
     <span id="interval">1000</span>
