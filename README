@@ -7,9 +7,11 @@ Server is written with flask-socket.io.  Client app is written with socket.io.
 There is also client web app on server.
 
 To start server:
+% pipenv install
 % pipenv run python -m app.__init__
 
 To run client app:
+% npm install socket.io-client
 % node main.js
 
 To access client web app:
