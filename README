@@ -1,0 +1,17 @@
+Experiment for socket.io with JavaScript and Python.
+
+The aim is to stress both server and client to see how it behaves under heavy traffic.
+A msg sent from a client will be broadcasted to all connected clients.
+
+Server is written with flask-socket.io.  Client app is written with socket.io.
+There is also client web app on server.
+
+To start server:
+% pipenv run python -m app.__init__
+
+To run client app:
+% node main.js
+
+To access client web app:
+1. start server
+2. access / (i.e. http://localhost:5000)
