@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"
+        integrity="sha512-v8ng/uGxkge3d1IJuEo6dJP8JViyvms0cly9pnbfRxT6/31c3dRWxIiwGnMSWwZjHKOuY3EVmijs7k1jz/9bLA=="
+        crossorigin="anonymous"></script>
+<script>
+    const socket = io('/', { transports: ['websocket'], upgrade: false });
+    let intervalMs = 1000;
+    let data = { data: 123456789 };
+    let seq = 1;
+
+    socket.on('connect', () => {
+        console.log('connected');
+        socket.emit('join');
+    })
+
+    socket.on('joined', () => {
+        console.log('joined');
+
+        setTimeout(sendMsg, intervalMs);
+    })
+
+    socket.on('msg received', () => {
+        console.log('msg received');
+    })
+
+    function sendMsg() {
+        console.log('sending msg...');
+        socket.emit('msg', {
+            timestamp: new Date().toLocaleString(),
+            sequence: seq,
+            data: data
+        });
+        seq += 1;
+        console.log('finished sending msg...');
+
+        setTimeout(sendMsg, intervalMs);
+    }
+
+    function update_interval() {
+        const inputEl = document.getElementsByTagName('input')[0];
+        intervalMs = inputEl.value;
+        const intervalEl = document.getElementById('interval');
+        intervalEl.innerText = intervalMs;
+    }
+
+    function update_data() {
+        const dataTextEl = document.getElementById('dataToSend');
+        data = JSON.parse(dataTextEl.value);
+    }
+</script>
+<body>
+<h1>index</h1>
+<div>
+  <div>
+    current interval:
+    <span id="interval">1000</span>
+  </div>
+  <div>
+    <input id="interval_input" value="1000">
+    <button onclick="update_interval()">update interval</button>
+  </div>
+  <div>
+    <textarea id="dataToSend">
+{
+  "data": 123456789
+}
+    </textarea>
+    <button onclick="update_data()">update data</button>
+  </div>
+</div>
+</body>
+</html>
